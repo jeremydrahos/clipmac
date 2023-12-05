@@ -1,0 +1,18 @@
+Clipboard reading function
+  ignore if => 20 characters
+  handle aaaa.aaaa.aaaa
+  handle aa:aa:aa:aa:aa:aa
+  handle aa-aa-aa-aa-aa-aa
+  add ability to do [<MAC> AND DHCP] for splunk
+
+
+
+
+
+
+
+
+
+
+
+Much later: OCR image on clipboard and use that to get the text.
