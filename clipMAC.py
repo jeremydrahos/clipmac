@@ -4,6 +4,7 @@ PIL: python image library
 keyboard: hotkey library
 threading: threading, to alow multiple functions to run concurrently
 tkinter: TK interface for menu
+time: sleep function
 """
 
 from pystray import Icon as icon, Menu as menu, MenuItem as item
@@ -42,12 +43,6 @@ def on_hotkey():
 def create_systray():
     print('running create_systray()...')
     image = Image.open('clipmac.png')
-#    icon_menu = icon('clipMAC', image, menu=menu(
-#        item('clipMAC by Jeremy Drahos', lambda icon, item: about_clicked(icon, item)),
-#        item(
-#            'Quit',
-#            lambda icon, item: quit_clicked(icon, item)
-#        )
     icon_menu = menu(
         item(menu_ver(), about_clicked),
         item('Quit', quit_clicked)
@@ -79,21 +74,13 @@ def custom_tkinter_loop():
     root.destroy()
 
     
-#create_systray()
 
-print('threading out the icon...')
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
-print('done threading...')
 
-print('listening for the hotkey...')
 keyboard.add_hotkey('ctrl+alt+shift+m', show_menu)
-print('listening executed...')
 
-print('running custom_tkinter_loop()...')
 custom_tkinter_loop()
-print('ran custum_tkinter_loop()...')
+
 icon_thread.join()
 
-
-#icon.run()
