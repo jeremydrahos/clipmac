@@ -17,6 +17,7 @@ import time
 VERSION = '0.0.1'
 image = Image.open('clipmac.png')
 show_menu_flag = False
+exit_flag = False
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
@@ -31,7 +32,9 @@ def about_clicked(icon, item):
     print(f'clipMAC v{VERSION}')
 
 def quit_clicked(icon, item):
+    global exit_flag
     icon.stop()
+    exit_flag = True
     
 def on_hotkey():
     print('Hotkey detected!')
@@ -65,14 +68,15 @@ context_menu.add_command(label="Action 1", command=action1)
 context_menu.add_command(label="Action 2", command=action2)
 
 def custom_tkinter_loop():
-    global show_menu_flag
-    while True:
+    global show_menu_flag, exit_flag
+    while not exit_flag:
         root.update()
         if show_menu_flag:
             x, y = root.winfo_pointerxy()
             context_menu.post(x, y)
             show_menu_flag = False
         time.sleep(0.1)
+    root.destroy()
 
     
 #create_systray()
@@ -89,6 +93,7 @@ print('listening executed...')
 print('running custom_tkinter_loop()...')
 custom_tkinter_loop()
 print('ran custum_tkinter_loop()...')
+icon_thread.join()
 
 
 #icon.run()
