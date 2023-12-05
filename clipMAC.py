@@ -11,10 +11,12 @@ from PIL import Image, ImageDraw
 import keyboard
 import threading
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import Menu
+import time
 
 VERSION = '0.0.1'
 image = Image.open('clipmac.png')
+show_menu_flag = False
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
@@ -51,18 +53,28 @@ def create_systray():
     tray_icon = icon('clipMAC', image, menu=icon_menu)
     tray_icon.run()
 
-
 def show_menu():
-    print('running show_menu()...')
-    root = tk.Tk()
-    root.withdraw()
-    response = simpledialog.askstring('Menu', 'Action 1, Action 2')
-    if response == '1':
-        print('Action 1 detected.')
-    if response == '2':
-        print('Action 2 detected.')
-    root.destroy()
+    global show_menu_flag
+    show_menu_flag = True
 
+root = tk.Tk()
+root.withdraw()
+
+context_menu = Menu(root, tearoff=0)
+context_menu.add_command(label="Action 1", command=action1)
+context_menu.add_command(label="Action 2", command=action2)
+
+def custom_tkinter_loop():
+    global show_menu_flag
+    while True:
+        root.update()
+        if show_menu_flag:
+            x, y = root.winfo_pointerxy()
+            context_menu.post(x, y)
+            show_menu_flag = False
+        time.sleep(0.1)
+
+    
 #create_systray()
 
 print('threading out the icon...')
@@ -71,7 +83,12 @@ icon_thread.start()
 print('done threading...')
 
 print('listening for the hotkey...')
-keyboard.add_hotkey('ctrl+alt+shift+m', show_menu())
-print('through that...')
+keyboard.add_hotkey('ctrl+alt+shift+m', show_menu)
+print('listening executed...')
+
+print('running custom_tkinter_loop()...')
+custom_tkinter_loop()
+print('ran custum_tkinter_loop()...')
+
 
 #icon.run()
