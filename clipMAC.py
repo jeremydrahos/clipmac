@@ -24,7 +24,7 @@ RAWMAC = ''
 image = Image.open('clipmac.png')
 show_menu_flag = False
 exit_flag = False
-strip_chars = ":-."
+strip_chars = ":-. "
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
