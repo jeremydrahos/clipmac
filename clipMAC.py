@@ -29,7 +29,6 @@ exit_flag = False
 strip_chars = ":-. "
 clipboard_data = ''
 context_menu = None
-clipboard_transfer = ''
 
 def fart():
     print('fart')
@@ -45,11 +44,21 @@ def show_mac_colon_lower():
     global RAWMAC
     return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]}'.lower()
 
+def show_mac_dot():
+    global RAWMAC
+    return f'{RAWMAC[0]}{RAWMAC[1]}{RAWMAC[2]}{RAWMAC[3]}.{RAWMAC[4]}{RAWMAC[5]}{RAWMAC[6]}{RAWMAC[7]}.{RAWMAC[8]}{RAWMAC[9]}{RAWMAC[10]}{RAWMAC[11]}'
+
+def show_mac_dash():
+    global RAWMAC
+    return f'{RAWMAC[0]}{RAWMAC[1]}-{RAWMAC[2]}{RAWMAC[3]}-{RAWMAC[4]}{RAWMAC[5]}-{RAWMAC[6]}{RAWMAC[7]}-{RAWMAC[8]}{RAWMAC[9]}-{RAWMAC[10]}{RAWMAC[11]}'
+
+def show_mac_splunk():
+    global RAWMAC
+    return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]} AND DHCP'
 
 def copy_raw_lower():
-    print(RAWMAC)
-    clipboard_transfer = RAWMAC.lower
-    set_clipboard(clipboard_transfer)
+    global RAWMAC
+    set_clipboard(RAWMAC.lower)
 
 
 def copy_raw_upper():
@@ -79,7 +88,6 @@ def get_clipboard():
     try:
         clipboard_data = win32clipboard.GetClipboardData()
         win32clipboard.CloseClipboard()
-        print('end of try')
 
     except:
         print('Unsupported clipboard data')
@@ -89,7 +97,8 @@ def get_clipboard():
         RAWMAC = get_raw_mac(clipboard_data)
         if len(RAWMAC) != 12:
             print('no')
-            return 'Invalid MAC'
+            RAWMAC = 'invalid'
+            
         else:
             print('yes')
             RAWMAC = RAWMAC.lower()
@@ -106,7 +115,6 @@ def set_clipboard(s):
         win32clipboard.CloseClipboard()
 
 def create_systray():
-    print('running create_systray()...')
     image = Image.open('clipmac.png')
     icon_menu = menu(
         item(menu_ver(), about_clicked),
@@ -122,20 +130,30 @@ def show_menu():
     global show_menu_flag, context_menu, RAWMAC
     if context_menu is not None:
         context_menu.destroy()
- 
-    context_menu = Menu(root, tearoff=0)
-    get_clipboard()
-    context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
-    context_menu.add_command(label=RAWMAC.upper(), command=copy_raw_upper)
-    context_menu.add_command(label=show_mac_colon_upper(), command=fart)
-    context_menu.add_command(label=show_mac_colon_lower(), command=fart)
-    context_menu.add_command(label="Action 5", command=fart)
-    context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
-    context_menu.add_separator()
-    context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
-    x, y = root.winfo_pointerxy()
-    root.after(0, context_menu.post(x, y))
-    show_menu_flag = True
+        get_clipboard()
+    if len(RAWMAC) == 12:
+        context_menu = Menu(root, tearoff=0)
+        context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
+        context_menu.add_command(label=RAWMAC.upper(), command=copy_raw_upper)
+        context_menu.add_command(label=show_mac_colon_upper(), command=fart)
+        context_menu.add_command(label=show_mac_colon_lower(), command=fart)
+        context_menu.add_command(label=show_mac_dot(), command=fart)
+        context_menu.add_command(label=show_mac_dash(), command=fart)
+        context_menu.add_command(label=show_mac_splunk(), command=fart)
+        context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
+        context_menu.add_separator()
+        context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
+        x, y = root.winfo_pointerxy()
+        root.after(0, context_menu.post(x, y))
+        show_menu_flag = True
+    else:
+        context_menu = Menu(root, tearoff=0)        
+        context_menu.add_command(label="No valid MAC", command=context_menu.unpost)
+        context_menu.add_separator()
+        context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
+        x, y = root.winfo_pointerxy()
+        root.after(0, context_menu.post(x, y))
+        show_menu_flag = True
 
 root = tk.Tk()
 root.withdraw()
