@@ -6,9 +6,11 @@ threading: threading, to alow multiple functions to run concurrently
 tkinter: TK interface for menu
 time: sleep function
 webbrowser: open url in default browser for vendor lookup
-win32clipboard: get clipboard data
+win32clipboard: manage clipboard data
 """
 
+from asyncio.windows_events import NULL
+from multiprocessing import context
 from tkinter import Menu
 import threading
 import tkinter as tk
@@ -25,16 +27,34 @@ image = Image.open('clipmac.png')
 show_menu_flag = False
 exit_flag = False
 strip_chars = ":-. "
+clipboard_data = ''
+context_menu = None
+clipboard_transfer = ''
+
+def fart():
+    print('fart')
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
 
-def action1():
-    print("Action 1")
+def show_mac_colon_upper():
+    global RAWMAC
+    return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]}'.upper()
 
-def action2():
-    print("Action 2")
+def show_mac_colon_lower():
+    global RAWMAC
+    return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]}'.lower()
 
+
+def copy_raw_lower():
+    print(RAWMAC)
+    clipboard_transfer = RAWMAC.lower
+    set_clipboard(clipboard_transfer)
+
+
+def copy_raw_upper():
+    set_clipboard(RAWMAC.upper)
+    
 def vendor_lookup():
     webbrowser.open_new_tab(url='https://api.macvendors.com/' + RAWMAC)
 
@@ -47,7 +67,43 @@ def quit_clicked(icon, item):
     exit_flag = True
     
 def on_hotkey():
-    print('Hotkey detected!')
+    global show_menu_flag
+    show_menu_flag = True
+
+def get_raw_mac(s):
+  return s.translate(str.maketrans("", "", strip_chars))
+
+def get_clipboard():
+    global RAWMAC, clipboard_data
+    win32clipboard.OpenClipboard()
+    try:
+        clipboard_data = win32clipboard.GetClipboardData()
+        win32clipboard.CloseClipboard()
+        print('end of try')
+
+    except:
+        print('Unsupported clipboard data')
+        win32clipboard.CloseClipboard()
+
+    else:
+        RAWMAC = get_raw_mac(clipboard_data)
+        if len(RAWMAC) != 12:
+            print('no')
+            return 'Invalid MAC'
+        else:
+            print('yes')
+            RAWMAC = RAWMAC.lower()
+            return RAWMAC.lower()
+
+def set_clipboard(s):
+    try:
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(s)
+        win32clipboard.CloseClipboard()
+    except:
+        print('An error occured')
+        win32clipboard.CloseClipboard()
 
 def create_systray():
     print('running create_systray()...')
@@ -60,62 +116,52 @@ def create_systray():
     tray_icon = icon('clipMAC', image, menu=icon_menu)
     tray_icon.run()
 
+
+
 def show_menu():
-    global show_menu_flag
+    global show_menu_flag, context_menu, RAWMAC
+    if context_menu is not None:
+        context_menu.destroy()
+ 
+    context_menu = Menu(root, tearoff=0)
+    get_clipboard()
+    context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
+    context_menu.add_command(label=RAWMAC.upper(), command=copy_raw_upper)
+    context_menu.add_command(label=show_mac_colon_upper(), command=fart)
+    context_menu.add_command(label=show_mac_colon_lower(), command=fart)
+    context_menu.add_command(label="Action 5", command=fart)
+    context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
+    context_menu.add_separator()
+    context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
+    x, y = root.winfo_pointerxy()
+    root.after(0, context_menu.post(x, y))
     show_menu_flag = True
 
 root = tk.Tk()
 root.withdraw()
 
-context_menu = Menu(root, tearoff=0)
-context_menu.add_command(label="Action 1", command=action1)
-context_menu.add_command(label="Action 2", command=action2)
-context_menu.add_command(label="Action 3", command=action2)
-context_menu.add_command(label="Action 4", command=action2)
-context_menu.add_command(label="Action 5", command=action2)
-context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
+
 
 def custom_tkinter_loop():
     global show_menu_flag, exit_flag
     while not exit_flag:
         root.update()
         if show_menu_flag:
-            x, y = root.winfo_pointerxy()
-            context_menu.post(x, y)
+            show_menu()
             show_menu_flag = False
+        root.update()
         time.sleep(0.1)
     root.destroy()
 
-def get_raw_mac(s):
-  return s.translate(str.maketrans("", "", strip_chars))
 
-def get_clipboard():
-    win32clipboard.OpenClipboard()
-    try:
-        data = win32clipboard.GetClipboardData()
-        win32clipboard.CloseClipboard()
-    except:
-        print('Unsupported clipboard data')
-        win32clipboard.CloseClipboard()
-    else:
-        return data
 
-def set_clipboard(s):
-    try:
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardText(s)
-        win32clipboard.CloseClipboard()
-    except:
-        print('An error occured')
-        win32clipboard.CloseClipboard()
 
 
 
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
 
-keyboard.add_hotkey('ctrl+alt+shift+m', show_menu)
+keyboard.add_hotkey('ctrl+alt+shift+m', on_hotkey)
 
 custom_tkinter_loop()
 
