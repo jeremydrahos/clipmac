@@ -9,8 +9,6 @@ webbrowser: open url in default browser for vendor lookup
 win32clipboard: manage clipboard data
 """
 
-from asyncio.windows_events import NULL
-from multiprocessing import context
 from tkinter import Menu
 import threading
 import tkinter as tk
@@ -29,9 +27,6 @@ exit_flag = False
 strip_chars = ":-. "
 clipboard_data = ''
 context_menu = None
-
-def fart():
-    print('fart')
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
@@ -106,6 +101,7 @@ def get_clipboard():
     global RAWMAC, clipboard_data
     print(f'first: {RAWMAC}')
     win32clipboard.OpenClipboard()
+    
     try:
         clipboard_data = win32clipboard.GetClipboardData()
         win32clipboard.CloseClipboard()
@@ -132,6 +128,7 @@ def set_clipboard(s):
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardText(s)
         win32clipboard.CloseClipboard()
+        
     except Exception as e:
         print(f'An error occured: {e}')
         win32clipboard.CloseClipboard()
@@ -146,11 +143,10 @@ def create_systray():
     tray_icon = icon('clipMAC', image, menu=icon_menu)
     tray_icon.run()
 
-
-
 def show_menu():
     global show_menu_flag, context_menu, RAWMAC
     print(f'first show_menu: {RAWMAC}')
+    
     if context_menu is not None:
         get_clipboard()
         time.sleep(0.5)
@@ -173,6 +169,7 @@ def show_menu():
         x, y = root.winfo_pointerxy()
         root.after(0, context_menu.post(x, y))
         show_menu_flag = True
+        
     else:
         print(f'not 12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)        
@@ -186,8 +183,6 @@ def show_menu():
 root = tk.Tk()
 root.withdraw()
 
-
-
 def custom_tkinter_loop():
     global show_menu_flag, exit_flag
     while not exit_flag:
@@ -198,9 +193,6 @@ def custom_tkinter_loop():
         root.update()
         time.sleep(0.1)
     root.destroy()
-
-
-
 
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
