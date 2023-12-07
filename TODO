@@ -1,5 +1,4 @@
 Add ability to customize the hotkey.
-Make the vendor lookup real-time in the menu.
 Much later: OCR image on clipboard and use that to get the text (will require a different clipboard module).
 Add logging.
 Fix initial trigger returning invalid.
