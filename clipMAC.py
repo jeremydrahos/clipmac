@@ -194,8 +194,6 @@ def custom_tkinter_loop():
         time.sleep(0.1)
     root.destroy()
 
-get_clipboard()
-
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
 
