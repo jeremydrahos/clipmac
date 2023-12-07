@@ -58,11 +58,31 @@ def show_mac_splunk():
 
 def copy_raw_lower():
     global RAWMAC
-    set_clipboard(RAWMAC.lower)
-
+    set_clipboard(RAWMAC.lower())
 
 def copy_raw_upper():
-    set_clipboard(RAWMAC.upper)
+    global RAWMAC
+    set_clipboard(RAWMAC.upper())
+
+def copy_colon_upper():
+    global RAWMAC
+    set_clipboard(show_mac_colon_upper())
+
+def copy_mac_colon_lower():
+    global RAWMAC
+    set_clipboard(show_mac_colon_lower())
+
+def copy_mac_dot():
+    global RAWMAC
+    set_clipboard(show_mac_dot())
+    
+def copy_mac_dash():
+    global RAWMAC
+    set_clipboard(show_mac_dash())
+    
+def copy_mac_splunk():
+    global RAWMAC
+    set_clipboard(show_mac_splunk())
     
 def vendor_lookup():
     webbrowser.open_new_tab(url='https://api.macvendors.com/' + RAWMAC)
@@ -84,24 +104,26 @@ def get_raw_mac(s):
 
 def get_clipboard():
     global RAWMAC, clipboard_data
+    print(f'first: {RAWMAC}')
     win32clipboard.OpenClipboard()
     try:
         clipboard_data = win32clipboard.GetClipboardData()
         win32clipboard.CloseClipboard()
+        print(f'Try Clipboard data: {clipboard_data}')
 
-    except:
-        print('Unsupported clipboard data')
+    except Exception as e:
+        print(f'Unsupported clipboard data\nActual exception: {e}')
         win32clipboard.CloseClipboard()
 
     else:
         RAWMAC = get_raw_mac(clipboard_data)
         if len(RAWMAC) != 12:
-            print('no')
+            print(f'Invalid MAC: {RAWMAC}')
             RAWMAC = 'invalid'
             
         else:
-            print('yes')
             RAWMAC = RAWMAC.lower()
+            print(f'Valid MAC: {RAWMAC}')
             return RAWMAC.lower()
 
 def set_clipboard(s):
@@ -110,8 +132,8 @@ def set_clipboard(s):
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardText(s)
         win32clipboard.CloseClipboard()
-    except:
-        print('An error occured')
+    except Exception as e:
+        print(f'An error occured: {e}')
         win32clipboard.CloseClipboard()
 
 def create_systray():
@@ -128,18 +150,23 @@ def create_systray():
 
 def show_menu():
     global show_menu_flag, context_menu, RAWMAC
+    print(f'first show_menu: {RAWMAC}')
     if context_menu is not None:
-        context_menu.destroy()
         get_clipboard()
+        time.sleep(0.5)
+        context_menu.destroy()
+        print(f'after get_clipboard: {RAWMAC}')
+
     if len(RAWMAC) == 12:
+        print(f'12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)
         context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
         context_menu.add_command(label=RAWMAC.upper(), command=copy_raw_upper)
-        context_menu.add_command(label=show_mac_colon_upper(), command=fart)
-        context_menu.add_command(label=show_mac_colon_lower(), command=fart)
-        context_menu.add_command(label=show_mac_dot(), command=fart)
-        context_menu.add_command(label=show_mac_dash(), command=fart)
-        context_menu.add_command(label=show_mac_splunk(), command=fart)
+        context_menu.add_command(label=show_mac_colon_upper(), command=copy_colon_upper)
+        context_menu.add_command(label=show_mac_colon_lower(), command=copy_mac_colon_lower)
+        context_menu.add_command(label=show_mac_dot(), command=copy_mac_dot)
+        context_menu.add_command(label=show_mac_dash(), command=copy_mac_dash)
+        context_menu.add_command(label=show_mac_splunk(), command=copy_mac_splunk)
         context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
         context_menu.add_separator()
         context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
@@ -147,6 +174,7 @@ def show_menu():
         root.after(0, context_menu.post(x, y))
         show_menu_flag = True
     else:
+        print(f'not 12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)        
         context_menu.add_command(label="No valid MAC", command=context_menu.unpost)
         context_menu.add_separator()
@@ -170,8 +198,6 @@ def custom_tkinter_loop():
         root.update()
         time.sleep(0.1)
     root.destroy()
-
-
 
 
 
