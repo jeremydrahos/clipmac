@@ -7,6 +7,7 @@ tkinter: TK interface for menu
 time: sleep function
 webbrowser: open url in default browser for vendor lookup
 win32clipboard: manage clipboard data
+os: file/directory management
 """
 
 from tkinter import Menu
@@ -16,11 +17,14 @@ import time
 import webbrowser
 import keyboard
 import win32clipboard
+import os
 from pystray import Icon as icon, Menu as menu, MenuItem as item
 from PIL import Image
 
 VERSION = '0.0.1'
 RAWMAC = ''
+LOCALAPPDIR = os.getenv('LOCALAPPDATA') + '\\clipMAC\\'
+LOGFILE = LOCALAPPDIR + 'clipMAC.log'
 image = Image.open('clipmac.png')
 show_menu_flag = False
 exit_flag = False
@@ -153,6 +157,9 @@ def show_menu():
         context_menu.destroy()
         print(f'after get_clipboard: {RAWMAC}')
 
+    if RAWMAC == '':
+        get_clipboard()
+     
     if len(RAWMAC) == 12:
         print(f'12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)
@@ -169,7 +176,7 @@ def show_menu():
         x, y = root.winfo_pointerxy()
         root.after(0, context_menu.post(x, y))
         show_menu_flag = True
-        
+               
     else:
         print(f'not 12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)        
@@ -193,6 +200,27 @@ def custom_tkinter_loop():
         root.update()
         time.sleep(0.1)
     root.destroy()
+
+def verify_appdir():
+    if not os.path.exists(LOCALAPPDIR):
+        print('Application directory does not exist.  Creating.')
+        try:
+            os.makedirs(LOCALAPPDIR)
+        except Exception as e:
+            print(f'An exception occured: {e}')
+
+def verify_logfile():
+    if not os.path.exists(LOGFILE):
+        print('Log file does not exist.  Creating.')
+        try:
+            with open(LOGFILE, 'w', encoding='utf-8') as logfile:
+                logfile.writelines(f'log file initialized...\n')
+        except Exception as e:
+            print(f'An exception occured: {e}')
+
+verify_appdir()
+
+verify_logfile()
 
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
