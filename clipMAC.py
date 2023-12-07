@@ -8,6 +8,7 @@ time: sleep function
 webbrowser: open url in default browser for vendor lookup
 win32clipboard: manage clipboard data
 os: file/directory management
+requests: http requests for vendor lookup
 """
 
 from tkinter import Menu
@@ -18,6 +19,7 @@ import webbrowser
 import keyboard
 import win32clipboard
 import os
+from requests import get
 from pystray import Icon as icon, Menu as menu, MenuItem as item
 from PIL import Image
 
@@ -34,6 +36,16 @@ context_menu = None
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
+
+def get_vendor():
+    try:
+        vendor = get('https://api.macvendors.com/' + RAWMAC)
+        if vendor.status_code == 404:
+            return 'Vendor: Not Found'
+        return f'Vendor: {vendor.text}'
+    except Exception as e:
+        print(f'An exception occured: {e}')
+        return 'Vendor lookup failed'
 
 def show_mac_colon_upper():
     global RAWMAC
@@ -170,7 +182,7 @@ def show_menu():
         context_menu.add_command(label=show_mac_dot(), command=copy_mac_dot)
         context_menu.add_command(label=show_mac_dash(), command=copy_mac_dash)
         context_menu.add_command(label=show_mac_splunk(), command=copy_mac_splunk)
-        context_menu.add_command(label="Lookup Vendor", command=vendor_lookup)
+        context_menu.add_command(label=get_vendor(), command=vendor_lookup)
         context_menu.add_separator()
         context_menu.add_command(label='Oops... close menu', command=context_menu.unpost)
         x, y = root.winfo_pointerxy()
