@@ -9,6 +9,7 @@ webbrowser: open url in default browser for vendor lookup
 win32clipboard: manage clipboard data
 os: file/directory management
 requests: http requests for vendor lookup
+logging: logging to file
 """
 
 from tkinter import Menu
@@ -19,11 +20,12 @@ import webbrowser
 import keyboard
 import win32clipboard
 import os
+import logging
 from requests import get
 from pystray import Icon as icon, Menu as menu, MenuItem as item
 from PIL import Image
 
-VERSION = '0.0.1'
+VERSION = '0.1.3'
 RAWMAC = ''
 LOCALAPPDIR = os.getenv('LOCALAPPDATA') + '\\clipMAC\\'
 LOGFILE = LOCALAPPDIR + 'clipMAC.log'
@@ -35,17 +37,40 @@ clipboard_data = ''
 context_menu = None
 HOTKEY = 'ctrl+alt+shift+m'
 
+def init_dir_and_log():
+    global LOCALAPPDIR, LOGFILE
+    if not os.path.exists(LOCALAPPDIR):
+        print('Application directory does not exist.  Creating.')
+        try:
+            os.makedirs(LOCALAPPDIR)
+        except Exception as e:
+            print(f'An exception occured: {e}')
+
+    if not os.path.exists(LOGFILE):
+        print('Log file does not exist.  Creating.')
+        try:
+            with open(LOGFILE, 'w', encoding='utf-8') as logfile:
+                logfile.write(f'Version: {VERSION}\n')
+        except Exception as e:
+            print(f'An exception occured: {e}')
+
+init_dir_and_log()
+logging.basicConfig(filename=LOGFILE, level=logging.INFO, style='{', datefmt='%Y-%m-%d %H:%M:%S', format='{asctime} {levelname} {filename}:{lineno}: {message}')
+
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
 
 def get_vendor():
+    global RAWMAC
     try:
         vendor = get('https://api.macvendors.com/' + RAWMAC)
         if vendor.status_code == 404:
             return 'Vendor: Not Found'
+            logging.info(f'Vendor lookup failed for {RAWMAC}')
         return f'Vendor: {vendor.text}'
+    
     except Exception as e:
-        print(f'An exception occured: {e}')
+        logging.error(f'An exception occured in get_vendor(): {e}')
         return 'Vendor lookup failed'
 
 def show_mac_colon_upper():
@@ -104,6 +129,7 @@ def about_clicked(icon, item):
 
 def quit_clicked(icon, item):
     global exit_flag
+    logging.info('Exiting via quit_clicked')
     icon.stop()
     exit_flag = True
     
@@ -123,7 +149,7 @@ def get_clipboard():
         win32clipboard.CloseClipboard()
 
     except Exception as e:
-        print(f'Unsupported clipboard data\nActual exception: {e}')
+        logging.error(f'Exception in get_clipboard: {e}\nclipboard_data: {clipboard_data}')
         win32clipboard.CloseClipboard()
 
     else:
@@ -143,7 +169,7 @@ def set_clipboard(s):
         win32clipboard.CloseClipboard()
         
     except Exception as e:
-        print(f'An error occured: {e}')
+        logging.error(f'An error occured in set_clipboard: {e}\nReceived data was: {s}')
         win32clipboard.CloseClipboard()
 
 def create_systray():
@@ -206,26 +232,7 @@ def custom_tkinter_loop():
         time.sleep(0.1)
     root.destroy()
 
-def verify_appdir():
-    if not os.path.exists(LOCALAPPDIR):
-        print('Application directory does not exist.  Creating.')
-        try:
-            os.makedirs(LOCALAPPDIR)
-        except Exception as e:
-            print(f'An exception occured: {e}')
-
-def verify_logfile():
-    if not os.path.exists(LOGFILE):
-        print('Log file does not exist.  Creating.')
-        try:
-            with open(LOGFILE, 'w', encoding='utf-8') as logfile:
-                logfile.write(f'Version: {VERSION}\n')
-        except Exception as e:
-            print(f'An exception occured: {e}')
-
-verify_appdir()
-
-verify_logfile()
+logging.info(f'clipMAC v{VERSION} started')
 
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
@@ -235,4 +242,3 @@ keyboard.add_hotkey(HOTKEY, on_hotkey)
 custom_tkinter_loop()
 
 icon_thread.join()
-
