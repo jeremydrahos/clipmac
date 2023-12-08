@@ -33,6 +33,7 @@ exit_flag = False
 strip_chars = ":-. "
 clipboard_data = ''
 context_menu = None
+HOTKEY = 'ctrl+alt+shift+m'
 
 def menu_ver():
     return 'clipMAC v' + str(VERSION)
@@ -115,13 +116,11 @@ def get_raw_mac(s):
 
 def get_clipboard():
     global RAWMAC, clipboard_data
-    print(f'first: {RAWMAC}')
     win32clipboard.OpenClipboard()
     
     try:
         clipboard_data = win32clipboard.GetClipboardData()
         win32clipboard.CloseClipboard()
-        print(f'Try Clipboard data: {clipboard_data}')
 
     except Exception as e:
         print(f'Unsupported clipboard data\nActual exception: {e}')
@@ -130,12 +129,10 @@ def get_clipboard():
     else:
         RAWMAC = get_raw_mac(clipboard_data)
         if len(RAWMAC) != 12:
-            print(f'Invalid MAC: {RAWMAC}')
             RAWMAC = 'invalid'
             
         else:
             RAWMAC = RAWMAC.lower()
-            print(f'Valid MAC: {RAWMAC}')
             return RAWMAC.lower()
 
 def set_clipboard(s):
@@ -161,19 +158,16 @@ def create_systray():
 
 def show_menu():
     global show_menu_flag, context_menu, RAWMAC
-    print(f'first show_menu: {RAWMAC}')
     
     if context_menu is not None:
         get_clipboard()
         time.sleep(0.5)
         context_menu.destroy()
-        print(f'after get_clipboard: {RAWMAC}')
 
     if RAWMAC == '':
         get_clipboard()
      
     if len(RAWMAC) == 12:
-        print(f'12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)
         context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
         context_menu.add_command(label=RAWMAC.upper(), command=copy_raw_upper)
@@ -190,7 +184,6 @@ def show_menu():
         show_menu_flag = True
                
     else:
-        print(f'not 12: {RAWMAC}')
         context_menu = Menu(root, tearoff=0)        
         context_menu.add_command(label="No valid MAC", command=context_menu.unpost)
         context_menu.add_separator()
@@ -226,7 +219,7 @@ def verify_logfile():
         print('Log file does not exist.  Creating.')
         try:
             with open(LOGFILE, 'w', encoding='utf-8') as logfile:
-                logfile.writelines(f'log file initialized...\n')
+                logfile.write(f'Version: {VERSION}\n')
         except Exception as e:
             print(f'An exception occured: {e}')
 
@@ -237,7 +230,7 @@ verify_logfile()
 icon_thread = threading.Thread(target=create_systray)
 icon_thread.start()
 
-keyboard.add_hotkey('ctrl+alt+shift+m', on_hotkey)
+keyboard.add_hotkey(HOTKEY, on_hotkey)
 
 custom_tkinter_loop()
 
