@@ -10,6 +10,9 @@ win32clipboard: manage clipboard data
 os: file/directory management
 requests: http requests for vendor lookup
 logging: logging to file
+base64: encode/decode image
+io: convert image to byte stream
+sys: used to unload/reload keyboard module to fix issue with hotkey not working after PC locking
 """
 
 from tkinter import Menu
@@ -23,6 +26,7 @@ import io
 import logging
 import keyboard
 import win32clipboard
+import sys
 from requests import get
 from pystray import Icon as icon, Menu as menu, MenuItem as item
 from PIL import Image
@@ -149,7 +153,7 @@ def get_clipboard():
     win32clipboard.OpenClipboard()
     
     try:
-        clipboard_data = win32clipboard.GetClipboardData()
+        clipboard_data = win32clipboard.GetClipboardData().replace('\n', '').replace('\r', '')
         win32clipboard.CloseClipboard()
 
     except Exception as e:
@@ -235,14 +239,42 @@ def custom_tkinter_loop():
         root.update()
         time.sleep(0.1)
     root.destroy()
+    
+#def setup_hotkey_listener():
+#    global HOTKEY
+#    keyboard.add_hotkey(HOTKEY, on_hotkey)
+    
+def listener_loop():
+    global exit_flag, HOTKEY
+    while not exit_flag:
+        try:
+            keyboard.remove_hotkey(HOTKEY)
+            sys.modules.pop('keyboard')
+        except:
+            pass
+        
+        import keyboard
+        keyboard.add_hotkey(HOTKEY, on_hotkey)
+        
+        for _ in range(4):
+            time.sleep(15)
+            if exit_flag:
+                break
 
 logging.info(f'clipMAC v{VERSION} started')
 
 icon_thread = threading.Thread(target=create_systray)
-icon_thread.start()
+listener_thread = threading.Thread(target=listener_loop)
 
-keyboard.add_hotkey(HOTKEY, on_hotkey)
+icon_thread.start()
+listener_thread.start()
+
+
+
+# original hotkey code
+# keyboard.add_hotkey(HOTKEY, on_hotkey)
 
 custom_tkinter_loop()
 
 icon_thread.join()
+listener_thread.join()
