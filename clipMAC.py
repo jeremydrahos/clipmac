@@ -120,15 +120,15 @@ def copy_mac_colon_lower():
 def copy_mac_dot():
     global RAWMAC
     set_clipboard(show_mac_dot())
-    
+
 def copy_mac_dash():
     global RAWMAC
     set_clipboard(show_mac_dash())
-    
+
 def copy_mac_splunk():
     global RAWMAC
     set_clipboard(show_mac_splunk())
-    
+
 def vendor_lookup():
     webbrowser.open_new_tab(url='https://api.macvendors.com/' + RAWMAC)
 
@@ -140,18 +140,18 @@ def quit_clicked(icon, item):
     logging.info('Exiting via quit_clicked')
     icon.stop()
     exit_flag = True
-    
+
 def on_hotkey():
     global show_menu_flag
     show_menu_flag = True
 
 def get_raw_mac(s):
-  return s.translate(str.maketrans("", "", strip_chars))
+    return s.translate(str.maketrans("", "", strip_chars))
 
 def get_clipboard():
     global RAWMAC, clipboard_data
     win32clipboard.OpenClipboard()
-    
+
     try:
         clipboard_data = win32clipboard.GetClipboardData().replace('\n', '').replace('\r', '')
         win32clipboard.CloseClipboard()
@@ -164,7 +164,7 @@ def get_clipboard():
         RAWMAC = get_raw_mac(clipboard_data)
         if len(RAWMAC) != 12:
             RAWMAC = 'invalid'
-            
+
         else:
             RAWMAC = RAWMAC.lower()
             return RAWMAC.lower()
@@ -175,7 +175,7 @@ def set_clipboard(s):
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardText(s)
         win32clipboard.CloseClipboard()
-        
+
     except Exception as e:
         logging.error(f'An error occured in set_clipboard: {e}\nReceived data was: {s}')
         win32clipboard.CloseClipboard()
@@ -192,7 +192,7 @@ def create_systray():
 
 def show_menu():
     global show_menu_flag, context_menu, RAWMAC
-    
+
     if context_menu is not None:
         get_clipboard()
         time.sleep(0.5)
@@ -200,7 +200,7 @@ def show_menu():
 
     if RAWMAC == '':
         get_clipboard()
-     
+
     if len(RAWMAC) == 12:
         context_menu = Menu(root, tearoff=0)
         context_menu.add_command(label=RAWMAC, command=copy_raw_lower)
@@ -216,7 +216,7 @@ def show_menu():
         x, y = root.winfo_pointerxy()
         root.after(0, context_menu.post(x, y))
         show_menu_flag = True
-               
+
     else:
         context_menu = Menu(root, tearoff=0)        
         context_menu.add_command(label="No valid MAC", command=context_menu.unpost)
@@ -239,11 +239,7 @@ def custom_tkinter_loop():
         root.update()
         time.sleep(0.1)
     root.destroy()
-    
-#def setup_hotkey_listener():
-#    global HOTKEY
-#    keyboard.add_hotkey(HOTKEY, on_hotkey)
-    
+
 def listener_loop():
     global exit_flag, HOTKEY
     while not exit_flag:
@@ -252,10 +248,10 @@ def listener_loop():
             sys.modules.pop('keyboard')
         except:
             pass
-        
+
         import keyboard
         keyboard.add_hotkey(HOTKEY, on_hotkey)
-        
+
         for _ in range(4):
             time.sleep(15)
             if exit_flag:
@@ -268,11 +264,6 @@ listener_thread = threading.Thread(target=listener_loop)
 
 icon_thread.start()
 listener_thread.start()
-
-
-
-# original hotkey code
-# keyboard.add_hotkey(HOTKEY, on_hotkey)
 
 custom_tkinter_loop()
 
