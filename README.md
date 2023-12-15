@@ -8,3 +8,9 @@ Furthermore, I am often looking into DHCP exchanges in Splunk, so I've added the
 ![clipMAC Sample](https://github.com/jeremydrahos/clipmac/blob/master/example.png?raw=true)
 
 _In this example, I had copied a MAC that was lowercase with colons._
+
+<br>
+
+### Standalone Windows Executable
+
+Also, within dist/clipMAC, there's a standalone exe build of the script.
