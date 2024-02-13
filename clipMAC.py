@@ -249,8 +249,12 @@ def listener_loop():
         except:
             pass
 
-        import keyboard
-        keyboard.add_hotkey(HOTKEY, on_hotkey)
+        try:
+            import keyboard
+            keyboard.add_hotkey(HOTKEY, on_hotkey)
+        except:
+            logging.error('Keyboard module failed to load.  Retrying shortly.')
+            pass
 
         for _ in range(4):
             time.sleep(15)
