@@ -14,7 +14,7 @@ base64: encode/decode image
 io: convert image to byte stream
 sys: used to unload/reload keyboard module to fix issue with hotkey not working after PC locking
 """
-
+ 
 from tkinter import Menu
 import threading
 import tkinter as tk
@@ -99,7 +99,7 @@ def show_mac_dash():
 
 def show_mac_splunk():
     global RAWMAC
-    return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]} AND DHCP'
+    return f'{RAWMAC[0]}{RAWMAC[1]}:{RAWMAC[2]}{RAWMAC[3]}:{RAWMAC[4]}{RAWMAC[5]}:{RAWMAC[6]}{RAWMAC[7]}:{RAWMAC[8]}{RAWMAC[9]}:{RAWMAC[10]}{RAWMAC[11]} AND DHCP*'
 
 def copy_raw_lower():
     global RAWMAC
