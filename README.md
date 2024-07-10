@@ -14,3 +14,5 @@ _In this example, I had copied a MAC that was lowercase with colons._
 ### Standalone Windows Executable
 
 Also, within dist/clipMAC, there's a standalone exe build of the script.
+If you'd like to build it yourself after reviewing the code:
+```pyinstaller -i clipmac.png --nowindowed clipMAC.py```
