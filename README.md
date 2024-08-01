@@ -17,3 +17,4 @@ _In this example, I had copied a MAC that was lowercase with colons._
 Also, within dist/clipMAC, there's a standalone exe build of the script.
 If you'd like to build it yourself after reviewing the code:
 `pyinstaller -i clipmac.png --nowindowed -F clipMAC.py`
+_Note: you __only__ need -F if you want it to be portable.  Omit it to build it to run on the local machine._
