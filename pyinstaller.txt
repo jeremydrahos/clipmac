@@ -1,0 +1,1 @@
+pyinstaller -i clipmac.png --noconsole -F clipMAC.py
